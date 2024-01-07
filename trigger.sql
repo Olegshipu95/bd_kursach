@@ -51,32 +51,33 @@ CREATE TRIGGER before_insert_outsider
 EXECUTE FUNCTION check_last_sacrifice_date();
 
 
--- CREATE OR REPLACE FUNCTION check_outsider_status()
---     RETURNS TRIGGER AS $$
--- DECLARE
---     human_status_value varchar(40);
--- BEGIN
---     -- Получение статуса из human_status по human_id
---     SELECT hs.status INTO human_status_value
---     FROM human h
---              JOIN human_status hs ON h.status_id = hs.id
---     WHERE h.id = NEW.human_id;
---
---     -- Проверка, что статус не "dead"
---     IF human_status_value = 'dead' THEN
---         RAISE EXCEPTION 'Cannot add new outsider. Associated human has status "dead".';
---     END IF;
---
---     RETURN NEW;
--- END;
--- $$ LANGUAGE plpgsql;
---
--- CREATE TRIGGER before_insert_outsider
---     BEFORE INSERT
---     ON outsider
---     FOR EACH ROW
--- EXECUTE FUNCTION check_outsider_status();
---
+CREATE OR REPLACE FUNCTION check_outsider_status()
+    RETURNS TRIGGER AS $$
+DECLARE
+    human_status_value varchar(40);
+BEGIN
+    -- Получение статуса из human_status по human_id
+    SELECT hs.status INTO human_status_value
+    FROM human h
+             JOIN human_status hs ON h.status = hs.id
+    WHERE h.id = NEW.human_id;
+
+    -- Проверка, что статус не "dead"
+    IF human_status_value = 'dead' THEN
+        RAISE EXCEPTION 'Cannot add new outsider. Associated human has status "dead".';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+drop trigger if exists before_insert_outsider on outsider;
+CREATE TRIGGER before_insert_outsider
+    BEFORE INSERT
+    ON outsider
+    FOR EACH ROW
+EXECUTE FUNCTION check_outsider_status();
+
 -- CREATE OR REPLACE FUNCTION check_outsider_action()
 --     RETURNS TRIGGER AS $$
 -- DECLARE
