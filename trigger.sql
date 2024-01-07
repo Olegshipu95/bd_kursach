@@ -43,8 +43,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-drop trigger if exists before_insert_outsider on outsider;
-CREATE TRIGGER before_insert_outsider
+drop trigger if exists before_insert_outsider_1 on outsider;
+CREATE TRIGGER before_insert_outsider_1
     BEFORE INSERT
     ON outsider
     FOR EACH ROW
@@ -71,36 +71,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-drop trigger if exists before_insert_outsider on outsider;
-CREATE TRIGGER before_insert_outsider
+drop trigger if exists before_insert_outsider_2 on outsider;
+CREATE TRIGGER before_insert_outsider_2
     BEFORE INSERT
     ON outsider
     FOR EACH ROW
 EXECUTE FUNCTION check_outsider_status();
 
--- CREATE OR REPLACE FUNCTION check_outsider_action()
---     RETURNS TRIGGER AS $$
--- DECLARE
---     total_rating_delta bigint;
---     average_rating_delta numeric;
--- BEGIN
---     -- Находим все события в human_action, которые принадлежат outsider.human_id
---     SELECT AVG(a.rating_delta) INTO average_rating_delta
---     FROM human_action ha
---              JOIN action a ON ha.action_id = a.id
---     WHERE ha.human_id = NEW.human_id AND a.expire_duration > extract(epoch FROM current_timestamp);
---
---     -- Проверяем условие: среднее значение rating_delta должно быть не выше 50
---     IF average_rating_delta IS NOT NULL AND average_rating_delta > 50 THEN
---         RAISE EXCEPTION 'Cannot add new outsider. Average rating delta is above 50.';
---     END IF;
---
---     RETURN NEW;
--- END;
--- $$ LANGUAGE plpgsql;
---
--- CREATE TRIGGER before_insert_outsider
---     BEFORE INSERT
---     ON outsider
---     FOR EACH ROW
--- EXECUTE FUNCTION check_outsider_action();
+CREATE OR REPLACE FUNCTION check_outsider_action()
+    RETURNS TRIGGER AS $$
+DECLARE
+    total_rating_delta bigint;
+    average_rating_delta numeric;
+BEGIN
+    -- Находим все события в human_action, которые принадлежат outsider.human_id
+    SELECT AVG(a.rating_delta) INTO average_rating_delta
+    FROM human_action ha
+             JOIN action a ON ha.action_id = a.id
+    WHERE ha.human_id = NEW.human_id AND a.expire_duration > extract(epoch FROM current_timestamp);
+
+    -- Проверяем условие: среднее значение rating_delta должно быть не выше 50
+    IF average_rating_delta IS NOT NULL AND average_rating_delta > 50 THEN
+        RAISE EXCEPTION 'Cannot add new outsider. Average rating delta is above 50.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+drop trigger if exists before_insert_outsider_3 on outsider;
+CREATE TRIGGER before_insert_outsider_3
+    BEFORE INSERT
+    ON outsider
+    FOR EACH ROW
+EXECUTE FUNCTION check_outsider_action();

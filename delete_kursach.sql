@@ -1,3 +1,8 @@
+drop trigger if exists before_insert_sacrifice on sacrifice;
+drop trigger if exists before_insert_outsider_1 on outsider;
+drop trigger if exists before_insert_outsider_2 on outsider;
+drop trigger if exists before_insert_outsider_3 on outsider;
+
 drop table if exists sacrifice;
 drop table if exists altar;
 drop table if exists elected_ability;
