@@ -83,12 +83,6 @@ CREATE TABLE IF NOT EXISTS db_cs_rune
     FOREIGN KEY (elected_id) REFERENCES db_cs_elected (id)
 );
 
-create table IF NOT EXISTS db_cs_abbey_rank_status
-(
-    id          BIGSERIAL PRIMARY KEY,
-    description TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS db_cs_sacrifice
 (
     id               BIGSERIAL PRIMARY KEY,
@@ -105,14 +99,16 @@ CREATE TABLE IF NOT EXISTS db_cs_sacrifice
 CREATE TABLE IF NOT EXISTS db_cs_elected_ability
 (
     elected_id BIGINT NOT NULL,
-    ability    BIGINT NOT NULL
+    ability_id    BIGINT NOT NULL,
+    FOREIGN KEY (elected_id) REFERENCES db_cs_elected (id),
+    FOREIGN KEY (ability_id) REFERENCES db_cs_ability (id)
 );
 
 CREATE TABLE IF NOT EXISTS db_cs_action
 (
     id              BIGSERIAL PRIMARY KEY,
     rating_delta    BIGINT                         NOT NULL,
-    expire_duration TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    expire_duration BIGINT NOT NULL,
     description     TEXT                           NOT NULL
 );
 
