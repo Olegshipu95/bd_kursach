@@ -1,6 +1,34 @@
-CREATE TYPE db_cs_human_status as ENUM ('alive', 'dead', 'disappeared');
-CREATE TYPE db_cs_instrument_status as ENUM('new', 'used', 'destroyed');
-CREATE TYPE db_cs_abbey_member_rank as ENUM('recruit', 'common', 'elder', 'grand');
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'db_cs_human_status') THEN
+            CREATE TYPE db_cs_human_status as ENUM ('alive', 'dead', 'disappeared');
+        END IF;
+        --more types here...
+    END
+$$;
+
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'db_cs_instrument_status') THEN
+            CREATE TYPE db_cs_instrument_status as ENUM ('new', 'used', 'destroyed');
+        END IF;
+        --more types here...
+    END
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'db_cs_abbey_member_rank') THEN
+            CREATE TYPE db_cs_abbey_member_rank as ENUM ('recruit', 'common', 'elder', 'grand');
+        END IF;
+        --more types here...
+    END
+$$;
+
 
 CREATE TABLE IF NOT EXISTS db_cs_human
 (
@@ -23,8 +51,7 @@ CREATE TABLE IF NOT EXISTS db_cs_outsider
     abbys_id BIGINT NOT NULL,
     FOREIGN KEY (human_id) REFERENCES db_cs_human (id),
     FOREIGN KEY (abbys_id) REFERENCES db_cs_abbys (id),
-    CONSTRAINT outsider_human_constraint UNIQUE (human_id),
-    CONSTRAINT outsider_abyss_constraint UNIQUE (abbys_id)
+    CONSTRAINT outsider_human_constraint UNIQUE (human_id)
 );
 
 
@@ -44,8 +71,8 @@ CREATE TABLE IF NOT EXISTS db_cs_abbey
 CREATE TABLE IF NOT EXISTS db_cs_abbey_member
 (
     id       BIGSERIAL PRIMARY KEY,
-    human_id BIGINT NOT NULL,
-    abbey_id BIGINT NOT NULL,
+    human_id BIGINT                  NOT NULL,
+    abbey_id BIGINT                  NOT NULL,
     rank     db_cs_abbey_member_rank NOT NULL,
     FOREIGN KEY (human_id) REFERENCES db_cs_human (id),
     CONSTRAINT abbey_member_constraint UNIQUE (human_id)
@@ -61,8 +88,8 @@ CREATE TABLE IF NOT EXISTS db_cs_altar
 CREATE TABLE IF NOT EXISTS db_cs_instrument
 (
     id          BIGSERIAL PRIMARY KEY,
-    description TEXT   NOT NULL,
-    status   db_cs_instrument_status NOT NULL
+    description TEXT                    NOT NULL,
+    status      db_cs_instrument_status NOT NULL
 );
 
 
@@ -99,7 +126,7 @@ CREATE TABLE IF NOT EXISTS db_cs_sacrifice
 CREATE TABLE IF NOT EXISTS db_cs_elected_ability
 (
     elected_id BIGINT NOT NULL,
-    ability_id    BIGINT NOT NULL,
+    ability_id BIGINT NOT NULL,
     FOREIGN KEY (elected_id) REFERENCES db_cs_elected (id),
     FOREIGN KEY (ability_id) REFERENCES db_cs_ability (id)
 );
@@ -107,9 +134,9 @@ CREATE TABLE IF NOT EXISTS db_cs_elected_ability
 CREATE TABLE IF NOT EXISTS db_cs_action
 (
     id              BIGSERIAL PRIMARY KEY,
-    rating_delta    BIGINT                         NOT NULL,
+    rating_delta    BIGINT NOT NULL,
     expire_duration BIGINT NOT NULL,
-    description     TEXT                           NOT NULL
+    description     TEXT   NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS db_cs_human_action
