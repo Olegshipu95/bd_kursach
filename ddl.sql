@@ -1,33 +1,6 @@
-DO
-$$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'db_cs_human_status') THEN
-            CREATE TYPE db_cs_human_status as ENUM ('alive', 'dead', 'disappeared');
-        END IF;
-        --more types here...
-    END
-$$;
-
-
-DO
-$$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'db_cs_instrument_status') THEN
-            CREATE TYPE db_cs_instrument_status as ENUM ('new', 'used', 'destroyed');
-        END IF;
-        --more types here...
-    END
-$$;
-
-DO
-$$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'db_cs_abbey_member_rank') THEN
-            CREATE TYPE db_cs_abbey_member_rank as ENUM ('recruit', 'common', 'elder', 'grand');
-        END IF;
-        --more types here...
-    END
-$$;
+CREATE TYPE db_cs_human_status as ENUM ('alive', 'dead', 'disappeared');
+CREATE TYPE  db_cs_instrument_status as ENUM ('new', 'used', 'destroyed');
+CREATE TYPE db_cs_abbey_member_rank as ENUM ('recruit', 'common', 'elder', 'grand');
 
 
 CREATE TABLE IF NOT EXISTS db_cs_human
