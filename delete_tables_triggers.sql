@@ -1,7 +1,13 @@
-drop trigger if exists before_insert_sacrifice on sacrifice;
-drop trigger if exists before_insert_outsider_1 on outsider;
-drop trigger if exists before_insert_outsider_2 on outsider;
-drop trigger if exists before_insert_outsider_3 on outsider;
+DROP TRIGGER IF EXISTS before_insert_sacrifice ON db_cs_sacrifice;
+DROP TRIGGER IF EXISTS before_insert_outsider_1 ON db_cs_outsider;
+DROP TRIGGER IF EXISTS before_insert_outsider_2 ON db_cs_outsider;
+DROP TRIGGER IF EXISTS before_insert_outsider_3 ON db_cs_outsider;
+
+DROP INDEX IF EXISTS index_action_expire_duration;
+DROP INDEX IF EXISTS index_ability_cost;
+DROP INDEX IF EXISTS index_ability_rune;
+DROP INDEX IF EXISTS index_abbey_member_rank;
+DROP INDEX IF EXISTS index_human_status;
 
 
 DROP TABLE IF EXISTS db_cs_human_action;
