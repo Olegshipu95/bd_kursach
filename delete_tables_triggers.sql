@@ -1,7 +1,7 @@
--- drop trigger if exists before_insert_sacrifice on sacrifice;
--- drop trigger if exists before_insert_outsider_1 on outsider;
--- drop trigger if exists before_insert_outsider_2 on outsider;
--- drop trigger if exists before_insert_outsider_3 on outsider;
+drop trigger if exists before_insert_sacrifice on sacrifice;
+drop trigger if exists before_insert_outsider_1 on outsider;
+drop trigger if exists before_insert_outsider_2 on outsider;
+drop trigger if exists before_insert_outsider_3 on outsider;
 
 
 DROP TABLE IF EXISTS db_cs_human_action;
