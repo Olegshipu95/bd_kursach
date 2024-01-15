@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION check_sacrifice_instrument_status()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
     IF NEW.instrument_id IS NOT NULL THEN
         -- Проверка, что instrument_status не равен "used" или "broken"
@@ -13,15 +14,17 @@ $$ LANGUAGE plpgsql;
 
 drop trigger if exists before_insert_sacrifice on db_cs_sacrifice;
 CREATE TRIGGER before_insert_sacrifice
-    BEFORE INSERT ON db_cs_sacrifice
+    BEFORE INSERT
+    ON db_cs_sacrifice
     FOR EACH ROW
 EXECUTE FUNCTION check_sacrifice_instrument_status();
 
 
 CREATE OR REPLACE FUNCTION check_abbey_member_before_insert()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
-    IF EXISTS (
+    IF EXISTS(
             SELECT 1
             FROM db_cs_abbey_member
             WHERE human_id = NEW.human_id
@@ -33,57 +36,22 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_abbey_member_before_insert_trigger
-    BEFORE INSERT ON db_cs_outsider
-    FOR EACH ROW
-EXECUTE FUNCTION check_abbey_member_before_insert();
-
-
-CREATE OR REPLACE FUNCTION check_last_sacrifice_date()
-    RETURNS TRIGGER AS $$
-DECLARE
-    last_sacrifice_date timestamp;
-BEGIN
-    -- Поиск последней даты жертвоприношения для данного outsider
-    SELECT MAX(data) INTO last_sacrifice_date
-    FROM db_cs_sacrifice;
-
-    -- Вывод значений
-    RAISE NOTICE 'last_sacrifice_date: %', last_sacrifice_date;
-    RAISE NOTICE 'current_timestamp: %', current_timestamp;
-    RAISE NOTICE 'difference: %', last_sacrifice_date - current_timestamp;
-
-    -- Если не найдено жертвоприношение, разрешить вставку
-    IF last_sacrifice_date IS NULL THEN
-        RETURN NEW;
-    END IF;
-
-
-
-    -- Проверка, что последнее жертвоприношение было более 100 лет назад
-    IF current_timestamp - last_sacrifice_date<  interval '100 years' THEN
-        RAISE EXCEPTION 'Cannot add new outsider. Last sacrifice was made less than 100 years ago.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-drop trigger if exists before_insert_outsider_1 on db_cs_outsider;
-CREATE TRIGGER before_insert_outsider_1
     BEFORE INSERT
     ON db_cs_outsider
     FOR EACH ROW
-EXECUTE FUNCTION check_last_sacrifice_date();
-
+EXECUTE FUNCTION check_abbey_member_before_insert();
 
 CREATE OR REPLACE FUNCTION check_outsider_status()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 DECLARE
     human_status_value db_cs_human_status;
 BEGIN
     -- Получение статуса из human_status по human_id
-    SELECT db_cs_human.status INTO human_status_value
-    FROM db_cs_human WHERE db_cs_human.id = NEW.human_id;
+    SELECT db_cs_human.status
+    INTO human_status_value
+    FROM db_cs_human
+    WHERE db_cs_human.id = NEW.human_id;
 
     RAISE NOTICE 'human_status_value: %', human_status_value;
     -- Проверка, что статус не "dead"
@@ -102,29 +70,28 @@ CREATE TRIGGER before_insert_outsider_2
     FOR EACH ROW
 EXECUTE FUNCTION check_outsider_status();
 
--- CREATE OR REPLACE FUNCTION check_outsider_action()
---     RETURNS TRIGGER AS $$
--- DECLARE
---     total_rating_delta bigint;
---     average_rating_delta numeric;
--- BEGIN
---     -- Находим все события в human_action, которые принадлежат outsider.human_id
---     SELECT AVG(a.rating_delta) INTO average_rating_delta
---     FROM human_action ha
---              JOIN action a ON ha.action_id = a.id
--- --     todo change
---     WHERE ha.human_id = NEW.human_id AND a.expire_duration > extract(epoch FROM current_timestamp);
---
---     -- Проверяем условие: среднее значение rating_delta должно быть не выше 50
---     IF average_rating_delta IS NOT NULL AND average_rating_delta > 50 THEN
--- --         RAISE EXCEPTION 'Cannot add new outsider. Average rating delta is above 50.';
---     END IF;
---
---     RETURN NEW;
--- END;
--- $$ LANGUAGE `plpgsql;
---
---
+CREATE OR REPLACE FUNCTION check_outsider_action()
+    RETURNS TRIGGER AS $$
+DECLARE
+    total_rating_delta bigint;
+    average_rating_delta numeric;
+BEGIN
+    -- Находим все события в human_action, которые принадлежат outsider.human_id
+    SELECT AVG(a.rating_delta) INTO average_rating_delta
+    FROM human_action ha
+             JOIN action a ON ha.action_id = a.id
+--     todo change
+    WHERE ha.human_id = NEW.human_id AND a.expire_duration > extract(epoch FROM current_timestamp);
+
+    -- Проверяем условие: среднее значение rating_delta должно быть не выше 50
+    IF average_rating_delta IS NOT NULL AND average_rating_delta > 50 THEN
+--         RAISE EXCEPTION 'Cannot add new outsider. Average rating delta is above 50.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 drop trigger if exists before_insert_outsider_3 on db_cs_outsider;
 -- CREATE TRIGGER before_insert_outsider_3
 --     BEFORE INSERT
