@@ -1,5 +1,5 @@
 CREATE TYPE db_cs_human_status as ENUM ('alive', 'dead', 'disappeared');
-CREATE TYPE  db_cs_instrument_status as ENUM ('new', 'used', 'destroyed');
+CREATE TYPE db_cs_instrument_status as ENUM ('new', 'used', 'destroyed');
 CREATE TYPE db_cs_abbey_member_rank as ENUM ('recruit', 'common', 'elder', 'grand');
 
 
@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS db_cs_elected_ability
 CREATE TABLE IF NOT EXISTS db_cs_action
 (
     id              BIGSERIAL PRIMARY KEY,
-    rating_delta    BIGINT NOT NULL,
-    expire_duration BIGINT NOT NULL,
+    rating_delta    BIGINT NOT NULL check ( rating_delta >= 0 and rating_delta <= 100 ),
+    expire_duration BIGINT NOT NULL check ( expire_duration > 0 ),
     description     TEXT   NOT NULL
 );
 

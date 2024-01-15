@@ -3345,6 +3345,7 @@ INSERT INTO db_cs_elected_ability (elected_id, ability_id) VALUES (27, 69);
 INSERT INTO db_cs_elected_ability (elected_id, ability_id) VALUES (63, 84);
 
 INSERT INTO db_cs_action (rating_delta, expire_duration, description) VALUES (10, 365, 'Helping the elderly cross the street');
+INSERT INTO db_cs_action (rating_delta, expire_duration, description) VALUES (10, 365, 'Helping the elderly cross the street');
 INSERT INTO db_cs_action (rating_delta, expire_duration, description) VALUES (15, 180, 'Volunteering at an animal shelter');
 INSERT INTO db_cs_action (rating_delta, expire_duration, description) VALUES (20, 120, 'Participating in a charity marathon');
 INSERT INTO db_cs_action (rating_delta, expire_duration, description) VALUES (25, 90, 'Donating blood');

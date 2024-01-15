@@ -70,35 +70,30 @@ CREATE TRIGGER before_insert_outsider_2
     FOR EACH ROW
 EXECUTE FUNCTION check_outsider_status();
 
-CREATE OR REPLACE FUNCTION check_outsider_action()
+CREATE OR REPLACE FUNCTION check_outsider_action_trigger()
     RETURNS TRIGGER AS $$
 DECLARE
-    total_rating_delta bigint;
-    average_rating_delta numeric;
+    result_value NUMERIC;
 BEGIN
-    -- Находим все события в human_action, которые принадлежат outsider.human_id
-    SELECT AVG(a.rating_delta) INTO average_rating_delta
-    FROM human_action ha
-             JOIN action a ON ha.action_id = a.id
---     todo change
-    WHERE ha.human_id = NEW.human_id AND a.expire_duration > extract(epoch FROM current_timestamp);
+    -- Вызываем вашу функцию с использованием NEW.human_id в качестве аргумента
+    result_value := check_outsider_action(NEW.human_id);
 
-    -- Проверяем условие: среднее значение rating_delta должно быть не выше 50
-    IF average_rating_delta IS NOT NULL AND average_rating_delta > 50 THEN
---         RAISE EXCEPTION 'Cannot add new outsider. Average rating delta is above 50.';
+    -- Проверяем, что возвращаемое значение больше 50
+    IF result_value <= 50 THEN
+        RAISE EXCEPTION 'Returned value from check_outsider_action is not greater than 50';
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-drop trigger if exists before_insert_outsider_3 on db_cs_outsider;
--- CREATE TRIGGER before_insert_outsider_3
---     BEFORE INSERT
---     ON db_cs_outsider
---     FOR EACH ROW
--- EXECUTE FUNCTION check_outsider_action();
-
+drop trigger if exists check_outsider_action_trigger on db_cs_outsider;
+-- Создаем триггер
+CREATE TRIGGER check_outsider_action_trigger
+    BEFORE INSERT
+    ON db_cs_outsider
+    FOR EACH ROW
+EXECUTE FUNCTION check_outsider_action_trigger();
 
 
 
