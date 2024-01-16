@@ -21,7 +21,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION check_outsider_action(p_human_id BIGINT, p_outsider_id BIGINT, p_mana BIGINT)
+CREATE OR REPLACE FUNCTION make_elected(p_human_id BIGINT, p_outsider_id BIGINT, p_mana BIGINT)
     returns BOOLEAN as
 $$
 declare
@@ -55,10 +55,45 @@ BEGIN
         raise notice 'abbys has not enough mana';
         return false;
     end if;
-        insert into db_cs_elected(human_id, outsider_id)
-        values (p_human_id, p_outsider_id)
-        returning id into new_id_elected;
-        insert into db_cs_rune(contained_mana, elected_id) VALUES (p_mana, new_id_elected);
-        update db_cs_abbys set mana = mana - p_mana where db_cs_abbys.id = (select db_cs_outsider.abbys_id from db_cs_outsider where id = p_outsider_id);
-    END;
+    insert into db_cs_elected(human_id, outsider_id)
+    values (p_human_id, p_outsider_id)
+    returning id into new_id_elected;
+    insert into db_cs_rune(contained_mana, elected_id) VALUES (p_mana, new_id_elected);
+    update db_cs_abbys
+    set mana = mana - p_mana
+    where db_cs_abbys.id = (select db_cs_outsider.abbys_id from db_cs_outsider where id = p_outsider_id);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION make_outsider(p_abbey_member BIGINT)
+    returns BOOLEAN as
+$$
+declare
+    good_human_id       BIGINT;
+    check_abbey_member BIGINT;
+    random_abbys_id           BIGINT;
+    random_instrument_id      BIGINT;
+    new_outsider        BIGINT;
+BEGIN
+    select id into check_abbey_member from db_cs_abbey_member where db_cs_abbey_member.id = p_abbey_member;
+    if check_abbey_member is null then
+        raise notice 'make_outsider:check_abbey_member is null';
+        return false;
+    end if;
+    SELECT id
+    into good_human_id
+    FROM db_cs_human
+    ORDER BY check_outsider_action(id) DESC
+    LIMIT 1;
+    update db_cs_human set status = 'disappeared' where id = good_human_id;
+    select id into random_abbys_id from db_cs_abbys ORDER BY RANDOM() LIMIT 1;
+    select id into random_instrument_id from db_cs_instrument where status = 'new' ORDER BY RANDOM() LIMIT 1;
+    if random_abbys_id is null or random_instrument_id is null then
+        raise notice 'make_outsider:abbys_id or instrument_id is null';
+        return false;
+    end if;
+    insert into db_cs_outsider(human_id, abbys_id) VALUES (good_human_id, random_abbys_id) returning id into new_outsider;
+    insert into db_cs_sacrifice(data, created_outsider, instrument_id, abbey_member) VALUES (current_timestamp, new_outsider, random_instrument_id, p_abbey_member);
+    return true;
+end;
 $$ LANGUAGE plpgsql;
