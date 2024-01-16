@@ -69,11 +69,11 @@ CREATE OR REPLACE FUNCTION make_outsider(p_abbey_member BIGINT)
     returns BOOLEAN as
 $$
 declare
-    good_human_id       BIGINT;
-    check_abbey_member BIGINT;
-    random_abbys_id           BIGINT;
-    random_instrument_id      BIGINT;
-    new_outsider        BIGINT;
+    good_human_id        BIGINT;
+    check_abbey_member   BIGINT;
+    random_abbys_id      BIGINT;
+    random_instrument_id BIGINT;
+    new_outsider         BIGINT;
 BEGIN
     select id into check_abbey_member from db_cs_abbey_member where db_cs_abbey_member.id = p_abbey_member;
     if check_abbey_member is null then
@@ -92,8 +92,42 @@ BEGIN
         raise notice 'make_outsider:abbys_id or instrument_id is null';
         return false;
     end if;
-    insert into db_cs_outsider(human_id, abbys_id) VALUES (good_human_id, random_abbys_id) returning id into new_outsider;
-    insert into db_cs_sacrifice(data, created_outsider, instrument_id, abbey_member) VALUES (current_timestamp, new_outsider, random_instrument_id, p_abbey_member);
+    insert into db_cs_outsider(human_id, abbys_id)
+    VALUES (good_human_id, random_abbys_id)
+    returning id into new_outsider;
+    insert into db_cs_sacrifice(data, created_outsider, instrument_id, abbey_member)
+    VALUES (current_timestamp, new_outsider, random_instrument_id, p_abbey_member);
+    return true;
+end;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION make_new_member(p_abbey_member BIGINT)
+    returns BOOLEAN as
+$$
+declare
+    bad_human_id       BIGINT;
+    check_abbey_member BIGINT;
+    new_abbey_id       bigint;
+BEGIN
+    select id into check_abbey_member from db_cs_abbey_member where db_cs_abbey_member.id = p_abbey_member;
+    if check_abbey_member is null then
+        raise notice 'new_member:check_abbey_member is null';
+        return false;
+    end if;
+    SELECT id
+    into bad_human_id
+    FROM db_cs_human
+    where current_timestamp - date_of_birth < interval '18' year
+    ORDER BY check_outsider_action(id)
+    LIMIT 1;
+    update db_cs_human set status = 'disappeared' where id = bad_human_id;
+    if bad_human_id is null then
+        raise notice 'new_member: no bad human';
+        return false;
+    end if;
+    select db_cs_abbey_member.abbey_id into new_abbey_id from db_cs_abbey_member where id = p_abbey_member;
+    insert into db_cs_abbey_member(human_id, abbey_id, rank)
+    values (bad_human_id, new_abbey_id, 'recruit');
     return true;
 end;
 $$ LANGUAGE plpgsql;
